@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <header>
+
+  </header>
+  <body>
+    <ul>
+      {% for item in videos %}
+      <li> <a href="{{ 'play/' + item }}" > {{ item }} </a> </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
