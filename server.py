@@ -11,35 +11,20 @@ from tornado.ioloop import IOLoop
 
 import os
 import re
-import sys
+import json
 
 import mimetypes
 from flask import Response, render_template
 from flask import Flask
 from flask import request
 
-
-def basename(filepath):
-    return os.path.splitext(os.path.basename(filepath))[0]
-
-
-def collect_videos(video_dir):
-    videos = {}
-    print video_dir
-    for root, dirs, files in os.walk(video_dir):
-        for f in files:
-            if f.endswith('.mp4'):
-                videos[basename(f)] = os.path.join(root, f)
-    return videos
-
-
-VIDEO_DIR = u'/home/dongjie/Videos'
-VIDEOS = collect_videos(VIDEO_DIR)
-
 app = Flask(__name__)
 
 MB = 1 << 20
 BUFF_SIZE = 10 * MB
+
+
+VIDEOS = json.load(open('./videos/data.json'))
 
 
 def partial_response(path, start, end=None):
@@ -112,6 +97,9 @@ if __name__ == '__main__':
 
     http_server = HTTPServer(WSGIContainer(app))
     http_server.listen(8080)
-    IOLoop.instance().start()
+    try:
+        IOLoop.instance().start()
+    except KeyboardInterrupt as e:
+        'Exit.'
 
     #  app.run(host=HOST, port=8080, debug=True)
