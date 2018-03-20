@@ -4,17 +4,39 @@
 Reference: https://github.com/go2starr/py-flask-video-stream
 '''
 
+from tornado.wsgi import WSGIContainer
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
+
 
 import os
 import re
+import sys
 
 import mimetypes
 from flask import Response, render_template
 from flask import Flask
 from flask import request
 
-app = Flask(__name__)
 
+def basename(filepath):
+    return os.path.splitext(os.path.basename(filepath))[0]
+
+
+def collect_videos(video_dir):
+    videos = {}
+    print video_dir
+    for root, dirs, files in os.walk(video_dir):
+        for f in files:
+            if f.endswith('.mp4'):
+                videos[basename(f)] = os.path.join(root, f)
+    return videos
+
+
+VIDEO_DIR = u'/home/dongjie/Videos'
+VIDEOS = collect_videos(VIDEO_DIR)
+
+app = Flask(__name__)
 
 MB = 1 << 20
 BUFF_SIZE = 10 * MB
@@ -63,19 +85,10 @@ def parse_range(request):
     else:
         return 0, None
 
-
-def get_video_list():
-    videos = []
-    for f in os.listdir('./videos'):
-        if f.endswith('.mp4'):
-            videos.append(f)
-    return videos
-
-
 @app.route('/')
 def home():
     response = render_template('index.html',
-                               videos=get_video_list())
+                               videos=sorted(VIDEOS.keys()))
     return response
 
 
@@ -88,7 +101,7 @@ def play(video_name):
 
 @app.route('/video/<video_name>')
 def video(video_name):
-    video_path = os.path.join('./videos', video_name)
+    video_path = VIDEOS[video_name]
 
     start, end = parse_range(request)
     return partial_response(video_path, start, end)
@@ -96,4 +109,9 @@ def video(video_name):
 
 if __name__ == '__main__':
     HOST = '0.0.0.0'
-    app.run(host=HOST, port=8080, debug=True)
+
+    http_server = HTTPServer(WSGIContainer(app))
+    http_server.listen(8080)
+    IOLoop.instance().start()
+
+    #  app.run(host=HOST, port=8080, debug=True)
