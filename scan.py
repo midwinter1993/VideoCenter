@@ -18,12 +18,12 @@ def collect_videos(video_dir):
     print 'Video PATH:', video_dir
     for root, dirs, files in os.walk(video_dir):
         for f in files:
-            if f.endswith('.mp4'):
+            if f.endswith('.mp4') or f.endswith('.avi'):
                 video_path = os.path.join(root, f)
                 video_codec = get_video_codes(video_path)
 
-                if video_codec != 'h264':
-                    print '%s ==> %s' % (video_path, video_codec)
+                if 'h264' not in video_codec:
+                    print '%s ==> %s' % (video_path, str(video_codec))
                 else:
                     videos[basename(f)] = video_path
     return videos
@@ -36,9 +36,10 @@ def get_video_codes(video_path):
     stdout, stderr = p.communicate()
 
     codec_names = re.findall(r'codec_name=(.*)', stdout)
-    video_codec = codec_names[0]
 
-    return video_codec
+    #  video_codec = codec_names[0]
+
+    return codec_names
 
 
 def save_json(data, filepath):
@@ -55,7 +56,7 @@ def save_yaml(data, filepath):
 
 
 
-VIDEO_DIR = u'/home/dongjie/Videos'
+VIDEO_DIR = u'/media/dongjie/0123-4567/vedio'
 
 if __name__ == "__main__":
     videos = collect_videos(VIDEO_DIR)
