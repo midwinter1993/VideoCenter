@@ -7,6 +7,8 @@ import os
 import re
 import sys
 import subprocess
+import pprint
+import codecs
 
 
 def basename(filepath):
@@ -16,7 +18,7 @@ def basename(filepath):
 def collect_videos(video_dir):
     videos = {}
     print 'Video PATH:', video_dir
-    for root, dirs, files in os.walk(video_dir):
+    for root, dirs, files in os.walk(unicode(video_dir, 'utf-8')):
         for f in files:
             if f.endswith('.mp4') or f.endswith('.avi'):
                 video_path = os.path.join(root, f)
@@ -43,22 +45,38 @@ def get_video_codes(video_path):
 
 
 def save_json(data, filepath):
-    with open(filepath, 'w') as fd:
+    with codecs.open(filepath, 'w', 'utf-8') as fd:
         fd.write(json.dumps(data,
                             ensure_ascii=False,
                             indent=4,
-                            sort_keys=True).encode('utf8'))
+                            sort_keys=True))
 
 
 def save_yaml(data, filepath):
-    with open(filepath, 'w') as fd:
+    with codecs.open(filepath, 'w', 'utf-8') as fd:
         fd.write(yaml.dump(data))
 
 
+def append_save_json(data, filepath):
+    old_data = json.load(open(filepath))
+    old_data.update(data)
+    save_json(old_data, filepath)
 
-VIDEO_DIR = u'/media/dongjie/0123-4567/vedio'
 
 if __name__ == "__main__":
-    videos = collect_videos(VIDEO_DIR)
-    print 'Scan: #', len(videos)
-    save_json(videos, './videos/data.json')
+    args = sys.argv[:]
+
+    if len(args) != 3:
+        print 'Usage scan [-a|-s] <video-dir>'
+        sys.exit(0)
+    opt = args[1]
+    video_dir = args[2]
+
+    if opt == '-s':
+        videos = collect_videos(video_dir)
+        print 'Scan: #', len(videos)
+        save_json(videos, u'./videos/data.json')
+    elif opt == '-a':
+        videos = collect_videos(video_dir)
+        print 'Scan: #', len(videos)
+        append_save_json(videos, u'./videos/data.json')
