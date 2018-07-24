@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 '''
 Reference: https://github.com/go2starr/py-flask-video-stream
 '''
